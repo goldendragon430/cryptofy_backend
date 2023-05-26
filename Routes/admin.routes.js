@@ -1,10 +1,9 @@
-const express = require('express');
-const checkAuth = require('../Middleware/checkAuth.middleware');
-const adminControllers = require('../Controllers/admin.controllers');
+const express = require("express");
+const adminMiddleware = require("../Middleware/admin.middleware");
+const adminControllers = require("../Controllers/admin.Controllers");
 const router = express.Router();
 
-router.post('/signup', adminControllers.adminRegister);
-router.post('/login', adminControllers.adminLogin);
-router.get('/me', checkAuth, adminControllers.getMe);
+router.post("/get_user_list", adminMiddleware, adminControllers.getUsersData);
+router.post("/set_user_state", adminMiddleware, adminControllers.setUserState);
 
-module.exports = router
+module.exports = router;

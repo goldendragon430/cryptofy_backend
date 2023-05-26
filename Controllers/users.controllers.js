@@ -1,144 +1,215 @@
 const bcrypt = require("bcrypt");
-require("../Node.Js-sample-project-structure/node_modules/dotenv").config();
+const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-const User = require("../Models/user");
+const { INIT_POWER } = require("../Utils/utils");
+var VerifyCodeList = {};
+var {
+  isExistUserByEmail,
+  isExistUserByIP,
+  addUser,
+  getUserData,
+  getUserDataByEmail,
+  getUserAddress,
+} = require("../Models/user.js");
+const { createReward } = require("../Models/Reward.js");
 
+var { createAccount } = require("../Web3/web3.js");
+const { createPower } = require("../Models/Mining.js");
+const userRegister = async (req, res) => {
+  const clientIp = req.clientIp;
+  const { email, password, referral } = req.body;
 
-const userRegister = (req, res, next) => {
-	User.find({ email: req.body.email })
-		.exec()
-		.then((user) => {
-			if (user.length >= 1) {
-        res.status(409).json({
-          message:"Email Exists"
-        })
-			} else {
-				bcrypt.hash(req.body.password, 10, (err, hash) => {
-					if (err) {
-						return res.status(500).json({
-							error: err,
-						});
-					} else {
-						const user = new User({
-							_id: new mongoose.Types.ObjectId(),
-							email: req.body.email,
-							password: hash,
-              name: req.body.name,
-              phone_number: req.body.phone_number
-						});
-						user
-							.save()
-							.then(async (result) => {
-								await result
-									.save()
-									.then((result1) => {
-                      console.log(`User created ${result}`)
-                      res.status(201).json({
-                        userDetails: {
-                          userId: result._id,
-                          email: result.email,
-                          name: result.name,
-                          phone_number: result.phone_number,
-                        },
-                      })
-									})
-									.catch((err) => {
-                    console.log(err)
-                    res.status(400).json({
-                      message: err.toString()
-                    })
-									});
-							})
-							.catch((err) => {
-                console.log(err)
-                res.status(500).json({
-                  message: err.toString()
-                })
-							});
-					}
-				});
-			}
-		})
-		.catch((err) => {
-      console.log(err)
-      res.status(500).json({
-        message: err.toString()
-      })
-    });
-}
+  try {
+    const isExist = await isExistUserByIP(clientIp);
+    if (isExist == false) {
+      if (email && password) {
+        const passwordHash = await bcrypt.hash(password, 10);
+        const username = email.split("@")[0];
+        wallet = await createAccount();
 
+        //add new user record
+        const newUserID = await addUser(
+          username,
+          email,
+          passwordHash,
+          clientIp,
+          wallet.address,
+          wallet.privatekey,
+          referral
+        );
+        if (newUserID > 0) {
+          await createReward("registeration", 0, INIT_POWER, newUserID);
+          await createPower(newUserID, INIT_POWER);
+          //get user's information
+          const userinfo = await getUserData(newUserID);
 
-const userLogin = (req, res, next) => {
-	User.find({ email: req.body.email })
-		.exec()
-		.then((user) => {
-      console.log(user)
-			if (user.length < 1) {
-				return res.status(401).json({
-					message: "Auth failed: Email not found probably",
-				});
-			}
-			bcrypt.compare(req.body.password, user[0].password, (err, result) => {
-				if (err) {
-          console.log(err)
-					return res.status(401).json({
-						message: "Auth failed",
-					});
-				}
-				if (result) {
-					const token = jwt.sign(
-						{
-              userId: user[0]._id,
-							email: user[0].email,
-							name: user[0].name,
-							phone_number: user[0].phone_number,
-						},
-						process.env.jwtSecret,
-						{
-							expiresIn: "1d",
-						}
+          //generate token for new user
+          const token = jwt.sign(
+            {
+              userId: newUserID,
+            },
+            process.env.jwtSecret
           );
-          console.log(user[0])
-					return res.status(200).json({
-						message: "Auth successful",
-						userDetails: {
-							userId: user[0]._id,
-							name: user[0].name,
-							email: user[0].email,
-							phone_number: user[0].phone_number,
-						},
-						token: token,
-					});
-				}
-				res.status(401).json({
-					message: "Auth failed1",
-				});
-			});
-		})
-		.catch((err) => {
-			res.status(500).json({
-				error: err,
-			});
-		});
-}
 
-const getMe = async (req, res) => {
-	const userId = req.user.userId;
-	const user = await User.findById(userId);
-	if (user) {
-		res.status(200).json({
-			message: "Found",
-			user,
-		});
-	} else {
-		res.status(400).json({
-			message: "Bad request",
-		});
-	}
+          res.status(200).json({
+            result: "success",
+            token: token,
+            user_info: userinfo,
+          });
+        } else {
+          res.status(400).json({
+            result: "failed",
+            msg: "Create Error",
+          });
+        }
+      } else {
+        res.status(400).json({
+          result: "failed",
+          msg: "invalid request.",
+        });
+      }
+    } else {
+      res.status(400).json({
+        result: "failed",
+        msg: "User already exist.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const userLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const isExist = await isExistUserByEmail(email);
+    if (isExist) {
+      const userinfo = await getUserDataByEmail(email);
+      const matchPassword = await bcrypt.compare(password, userinfo.password);
+      if (matchPassword) {
+        if (userinfo.state == 1) {
+          //generate token for new user
+          const token = jwt.sign(
+            {
+              userId: userinfo.id,
+            },
+            process.env.jwtSecret
+          );
+          res.status(200).json({
+            result: "success",
+            token: token,
+            user_info: userinfo,
+          });
+        } else {
+          res.status(400).json({
+            result: "failed",
+            msg: "You are suspended.",
+          });
+        }
+      } else {
+        res.status(400).json({
+          result: "failed",
+          msg: "password is wrong.",
+        });
+      }
+    } else {
+      res.status(400).json({
+        result: "failed",
+        msg: "Email is inValid",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
 };
 
+const userAddress = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const address = await getUserAddress(user_id);
+    res.status(200).json({
+      result: "success",
+      address: address,
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const sendCode = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const userinfo = await getUserData(user_id);
+    const email = userinfo.email;
+
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "veniaminit9@gmail.com",
+        pass: "jqwfekmtwlrrtbft",
+      },
+    });
+    var code = Math.floor(Math.random() * 10000000) % 1000000;
+    if (code < 100000) code = code * 10;
+    console.log(email, code);
+    VerifyCodeList[email] = code;
+    var mailOptions = {
+      from: "veniaminit9@gmail.com",
+      to: email,
+      subject: "Verify Code",
+      html: `<html>
+          <h2>${code}</h2>
+                </html>`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error, "mail send error");
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+    res.status(200).json({
+      result: "success",
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const confirmCode = async (req, res) => {
+  const { code } = req.body;
+  const user_id = req.user;
+  const userinfo = await getUserData(user_id);
+  const email = userinfo.email;
+  console.log(email, code, VerifyCodeList[email]);
+  if (parseInt(VerifyCodeList[email]) == code) {
+    res.status(200).json({
+      result: "success",
+    });
+  } else {
+    res.status(400).json({
+      result: "failed",
+      msg: "Code is wrong.",
+    });
+  }
+};
 module.exports = {
-  userLogin,
   userRegister,
-	getMe,
+  userLogin,
+  userAddress,
+  sendCode,
+  confirmCode,
 };
