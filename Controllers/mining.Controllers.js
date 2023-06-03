@@ -7,6 +7,8 @@ var {
   withdrawalTron,
   depositeTron,
   addAffilateBonus,
+  getConfig,
+  updateConfig,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -169,7 +171,55 @@ const checkDeposite = async (req, res) => {
     });
   }
 };
-
+const getConfiguration = async (req, res) => {
+  try {
+    const result = await getConfig();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const updateConfiguration = async (req, res) => {
+  try {
+    const { bonus_rate, min_r, min_w, lev_1, lev_2, lev_3 } = req.body;
+    const result = await updateConfig(
+      bonus_rate,
+      min_r,
+      min_w,
+      lev_1,
+      lev_2,
+      lev_3
+    );
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 const test = async (req, res) => {
   try {
     await addAffilateBonus(9, 100);
@@ -191,5 +241,7 @@ module.exports = {
   reinvest,
   withdrawl,
   checkDeposite,
+  getConfiguration,
+  updateConfiguration,
   test,
 };
