@@ -15,6 +15,7 @@ const { createReward } = require("../Models/Reward.js");
 
 var { createAccount } = require("../Web3/web3.js");
 const { createPower } = require("../Models/Mining.js");
+
 const userRegister = async (req, res) => {
   const clientIp = req.clientIp;
   const { email, password, referral } = req.body;
@@ -37,6 +38,7 @@ const userRegister = async (req, res) => {
           wallet.privatekey,
           referral
         );
+
         if (newUserID > 0) {
           await createReward("registeration", 0, INIT_POWER, newUserID);
           await createPower(newUserID, INIT_POWER);
@@ -50,7 +52,6 @@ const userRegister = async (req, res) => {
             },
             process.env.jwtSecret
           );
-
           res.status(200).json({
             result: "success",
             token: token,

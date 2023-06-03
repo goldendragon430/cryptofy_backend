@@ -4,9 +4,9 @@ var { getTransactionList } = require("../Models/Transaction");
 
 const getTransaction = async (req, res) => {
   const { type } = req.body;
-
+  const user_id = req.user;
   try {
-    const transaction_list = await getTransactionList(type);
+    const transaction_list = await getTransactionList(type, user_id);
     res.status(200).json({
       result: "success",
       data: transaction_list,

@@ -6,6 +6,7 @@ var {
   reInvestTron,
   withdrawalTron,
   depositeTron,
+  addAffilateBonus,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -73,7 +74,7 @@ const reinvest = async (req, res) => {
     if (minings.success) {
       var power = minings.power;
       var total_power = minings.total_power;
-      var balance = rewards.balance;
+      var balance = minings.balance;
       var remains = rewards.remain_time;
       res.status(200).json({
         result: "success",
@@ -141,11 +142,17 @@ const checkDeposite = async (req, res) => {
         user_id
       );
       if (user_info.success) {
+        /*------------GET BONUS-------------*/
         await addTransaction("deposite", result - 1, user_info.txID, user_id);
         var rewards = await getRandomBonus(user_id);
+
+        /*------------Add Affiliate-------------*/
+        await addAffilateBonus(user_id, result - 1);
+
         user_info["bonus_expired_time"] = rewards.remain_time;
         user_info["result"] = "success";
         user_info["is_deposited"] = true;
+        user_info["amount"] = result - 1;
         res.status(200).json(user_info);
       } else {
         res.status(400).json({
@@ -162,10 +169,27 @@ const checkDeposite = async (req, res) => {
     });
   }
 };
+
+const test = async (req, res) => {
+  try {
+    await addAffilateBonus(9, 100);
+
+    res.status(200).json({
+      result: "success",
+      msg: "Server Error",
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   getPower,
   setPower,
   reinvest,
   withdrawl,
   checkDeposite,
+  test,
 };

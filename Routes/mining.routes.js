@@ -8,5 +8,6 @@ router.post("/set_power", userMiddleware, miningControllers.setPower);
 router.post("/reinvest", userMiddleware, miningControllers.reinvest);
 router.post("/withdrawal", userMiddleware, miningControllers.withdrawl);
 router.post("/check_deposite", userMiddleware, miningControllers.checkDeposite);
+router.post("/test", userMiddleware, miningControllers.test);
 
 module.exports = router;

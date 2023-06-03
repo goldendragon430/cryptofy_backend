@@ -1,4 +1,5 @@
 const BONUS_RATE = 2.67;
 const DEPOSITE_BONUS = 0.02;
 const INIT_POWER = 180;
-module.exports = { BONUS_RATE, DEPOSITE_BONUS, INIT_POWER };
+const AFF_BONUS = [0.1, 0.05, 0.01];
+module.exports = { BONUS_RATE, DEPOSITE_BONUS, INIT_POWER, AFF_BONUS };
