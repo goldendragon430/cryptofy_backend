@@ -81,7 +81,7 @@ const getUserSKey = async (id) => {
 const getUserDataByEmail = async (email) => {
   try {
     const rows = await query(
-      `SELECT id, email, password, role, state, username from user where email = '${email}'`
+      `SELECT id, email, password, role, state, username,wallet from user where email = '${email}'`
     );
     return rows[0];
   } catch (err) {

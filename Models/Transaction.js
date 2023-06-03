@@ -12,10 +12,10 @@ const addTransaction = async (type, amount, hash, user_id) => {
   }
 };
 
-const getTransactionList = async (type) => {
+const getTransactionList = async (type, uid) => {
   try {
     const rows = await query(
-      `select * from transactions  where type = '${type}'`
+      `select * from transactions  where type = '${type}' and user_id = ${uid}`
     );
     return rows;
   } catch (err) {

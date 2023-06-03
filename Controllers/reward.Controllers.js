@@ -1,6 +1,11 @@
 const bcrypt = require("bcrypt");
 
-var { createReward, getUserReward } = require("../Models/Reward");
+var {
+  createReward,
+  getUserReward,
+  getAffiliateInfo,
+  getAffiliateTrs,
+} = require("../Models/Reward");
 const { addCurrentPower } = require("../Models/Mining");
 
 const addReward = async (req, res) => {
@@ -40,7 +45,7 @@ const getReward = async (req, res) => {
   try {
     const user_id = req.user;
     const rewards = await getUserReward(user_id);
-    res.status(400).json({
+    res.status(200).json({
       result: "success",
       data: rewards,
     });
@@ -51,7 +56,41 @@ const getReward = async (req, res) => {
     });
   }
 };
+const getAffiliate = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const data = await getAffiliateInfo(user_id);
+    res.status(200).json({
+      result: "success",
+      data: data,
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const getAffTransaction = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const data = await getAffiliateTrs(user_id);
+    res.status(200).json({
+      result: "success",
+      data: data,
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   addReward,
   getReward,
+  getAffiliate,
+  getAffTransaction,
 };
