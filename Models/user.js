@@ -92,11 +92,17 @@ const getUserDataByEmail = async (email) => {
 
 const getUserList = async () => {
   try {
-    const rows = await query(`SELECT * from user where role > 0`);
+    var rows = await query(
+      `SELECT id,email,username,ip,state from user where role > 0`
+    );
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].state = rows[i].state == 1;
+      rows[i]["No"] = i + 1;
+    }
     return rows;
   } catch (err) {
     console.log(err);
-    return false;
+    return [];
   }
 };
 
