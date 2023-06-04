@@ -7,6 +7,11 @@ var {
   withdrawalTron,
   depositeTron,
   addAffilateBonus,
+  getConfig,
+  updateConfig,
+  getPlanConfig,
+  updatePlanConfig,
+  addInvestPlan,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -169,7 +174,55 @@ const checkDeposite = async (req, res) => {
     });
   }
 };
-
+const getConfiguration = async (req, res) => {
+  try {
+    const result = await getConfig();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const updateConfiguration = async (req, res) => {
+  try {
+    const { bonus_rate, min_r, min_w, lev_1, lev_2, lev_3 } = req.body;
+    const result = await updateConfig(
+      bonus_rate,
+      min_r,
+      min_w,
+      lev_1,
+      lev_2,
+      lev_3
+    );
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 const test = async (req, res) => {
   try {
     await addAffilateBonus(9, 100);
@@ -185,11 +238,81 @@ const test = async (req, res) => {
     });
   }
 };
+const updatePlanConfiguration = async (req, res) => {
+  try {
+    const { data } = req.body;
+    const result = await updatePlanConfig(data);
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getPlanConfiguration = async (req, res) => {
+  try {
+    const result = await getPlanConfig();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const investPlan = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { amount, bonus, period } = req.body;
+    console.log(bonus);
+    const result = addInvestPlan(user_id, amount, period, bonus);
+    if (result) {
+      res.status(200).json({
+        result: "success",
+      });
+    } else {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   getPower,
   setPower,
   reinvest,
   withdrawl,
   checkDeposite,
+  getConfiguration,
+  updateConfiguration,
+  getPlanConfiguration,
+  updatePlanConfiguration,
+  investPlan,
   test,
 };
