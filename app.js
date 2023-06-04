@@ -13,6 +13,8 @@ var adminRouter = require("./Routes/admin.routes");
 var rewardRouter = require("./Routes/reward.routes");
 var miningRouter = require("./Routes/mining.routes");
 var transactionRouter = require("./Routes/transaction.routes");
+var fileURLToPath = require("url");
+var path = require("path");
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
@@ -27,18 +29,23 @@ app.use("/reward", rewardRouter);
 app.use("/mining", miningRouter);
 app.use("/transaction", transactionRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  ~res.status(404).json({
-    message: "No such route exists",
-  });
-});
+// // catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+//   ~res.status(404).json({
+//     message: "No such route exists",
+//   });
+// });
 
 // error handler
-app.use(function (err, req, res, next) {
-  res.status(err.status || 500).json({
-    message: "Error Message",
-  });
+// app.use(function (err, req, res, next) {
+//   res.status(err.status || 500).json({
+//     message: "Error Message",
+//   });
+// });
+
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
 app.listen(PORT || 5000, () => {
