@@ -317,6 +317,55 @@ const updateConfig = async (bonus_rate, min_r, min_w, lev_1, lev_2, lev_3) => {
     return false;
   }
 };
+const getPlanConfig = async () => {
+  try {
+    var rows = await query(`select * from plan_configuration`);
+    return rows;
+  } catch (err) {
+    return false;
+  }
+};
+const updatePlanConfig = async (data) => {
+  try {
+    await query(
+      `update plan_configuration set amount = ${data[0]["amount"]},period = ${data[0]["period"]},bonus = ${data[0]["bonus"]} where level = 1 `
+    );
+    await query(
+      `update plan_configuration set amount = ${data[1]["amount"]},period = ${data[1]["period"]},bonus = ${data[1]["bonus"]}  where level = 2`
+    );
+    await query(
+      `update plan_configuration set amount = ${data[2]["amount"]},period = ${data[2]["period"]},bonus = ${data[2]["bonus"]}  where level = 3`
+    );
+  } catch (err) {
+    return false;
+  }
+};
+
+const addInvestPlan = async (user_id, amount, period, bonus) => {
+  try {
+    console.log(bonus);
+    const rows = await query(
+      `SELECT balance from mining where user_id = ${user_id}`
+    );
+    if (rows.length > 0) {
+      if (rows[0].balance > amount) {
+        await query(
+          `UPDATE mining set balance = balance - ${amount} where user_id = ${user_id}`
+        );
+        console.log(period);
+        await query(
+          `INSERT INTO plan (user_id, start_time, end_time, amount, bonus,active) VALUES (${user_id}, CURRENT_TIME(), DATE_ADD(NOW(), INTERVAL ${period} DAY), ${amount}, ${bonus}, 1)`
+        );
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
 module.exports = {
   getCurrentPower,
   reInvestTron,
@@ -328,4 +377,7 @@ module.exports = {
   addAffilateBonus,
   getConfig,
   updateConfig,
+  getPlanConfig,
+  updatePlanConfig,
+  addInvestPlan,
 };

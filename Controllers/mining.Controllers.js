@@ -9,6 +9,9 @@ var {
   addAffilateBonus,
   getConfig,
   updateConfig,
+  getPlanConfig,
+  updatePlanConfig,
+  addInvestPlan,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -235,6 +238,71 @@ const test = async (req, res) => {
     });
   }
 };
+const updatePlanConfiguration = async (req, res) => {
+  try {
+    const { data } = req.body;
+    const result = await updatePlanConfig(data);
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getPlanConfiguration = async (req, res) => {
+  try {
+    const result = await getPlanConfig();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const investPlan = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { amount, bonus, period } = req.body;
+    console.log(bonus);
+    const result = addInvestPlan(user_id, amount, period, bonus);
+    if (result) {
+      res.status(200).json({
+        result: "success",
+      });
+    } else {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   getPower,
   setPower,
@@ -243,5 +311,8 @@ module.exports = {
   checkDeposite,
   getConfiguration,
   updateConfiguration,
+  getPlanConfiguration,
+  updatePlanConfiguration,
+  investPlan,
   test,
 };
