@@ -47,7 +47,7 @@ const addUser = async (
 ) => {
   try {
     const rows = await query(
-      `INSERT INTO user(username, email, password, ip, wallet, data, referral) VALUES ('${username}', '${email}', '${password}', '${ip}', '${wallet}', '${key}', ${referral})`
+      `INSERT INTO user(username, email, password, ip, wallet, data, referral, registered_time) VALUES ('${username}', '${email}', '${password}', '${ip}', '${wallet}', '${key}', ${referral}, CURRENT_TIME())`
     );
     const result = await query(`SELECT LAST_INSERT_ID()  as result`);
     return result[0]["result"];
@@ -59,7 +59,7 @@ const addUser = async (
 const getUserData = async (id) => {
   try {
     const rows = await query(
-      `SELECT id, email, role, state, username, wallet from user where id = ${id}`
+      `SELECT id, email, role, state, username, wallet ,registered_time, DATEDIFF(NOW(),registered_time) as remain from user where id = ${id}`
     );
     return rows[0];
   } catch (err) {
@@ -81,7 +81,7 @@ const getUserSKey = async (id) => {
 const getUserDataByEmail = async (email) => {
   try {
     const rows = await query(
-      `SELECT id, email, password, role, state, username,wallet from user where email = '${email}'`
+      `SELECT id, email, password, role, state, username,wallet,registered_time, DATEDIFF(  NOW(), registered_time) as remain  from user where email = '${email}'`
     );
     return rows[0];
   } catch (err) {

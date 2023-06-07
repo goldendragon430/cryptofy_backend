@@ -144,7 +144,13 @@ const depositeTron = async (amount, address, user_id) => {
       const config = await getConfig();
       var bonus_rate = config["bonus_rate"];
 
+      const remains = await query(
+        `SELECT DATEDIFF(NOW(),registered_time) as remain from user where id = ${user_id}`
+      );
+
+      if (remains[0]["remain"] == 0) bonus_rate = bonus_rate * 3;
       var bonus = Math.ceil(amount * (bonus_rate + DEPOSITE_BONUS));
+
       var new_power = rows[0].power + bonus;
       var total_power = rows[0].total_power + bonus;
 
