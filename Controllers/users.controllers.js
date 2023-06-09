@@ -10,6 +10,8 @@ var {
   getUserData,
   getUserDataByEmail,
   getUserAddress,
+  updateUserSeenTime,
+  updateUserEmailVerify,
 } = require("../Models/user.js");
 const { createReward } = require("../Models/Reward.js");
 
@@ -17,7 +19,7 @@ var { createAccount } = require("../Web3/web3.js");
 const { createPower } = require("../Models/Mining.js");
 
 const userRegister = async (req, res) => {
-  const clientIp = req.clientIp;
+  const clientIp = req.clientIp?.replace("::ffff:", "");
   const { email, password, referral } = req.body;
 
   try {
@@ -92,6 +94,7 @@ const userLogin = async (req, res) => {
       const matchPassword = await bcrypt.compare(password, userinfo.password);
       if (matchPassword) {
         if (userinfo.state == 1) {
+          await updateUserSeenTime(userinfo.id);
           //generate token for new user
           const token = jwt.sign(
             {
@@ -155,8 +158,8 @@ const sendCode = async (req, res) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "veniaminit9@gmail.com",
-        pass: "jqwfekmtwlrrtbft",
+        user: "ruka0430petri@gmail.com",
+        pass: "nnkkclzckscepylm",
       },
     });
     var code = Math.floor(Math.random() * 10000000) % 1000000;
@@ -164,7 +167,7 @@ const sendCode = async (req, res) => {
     console.log(email, code);
     VerifyCodeList[email] = code;
     var mailOptions = {
-      from: "veniaminit9@gmail.com",
+      from: "ruka0430petri@gmail.com",
       to: email,
       subject: "Verify Code",
       html: `<html>
@@ -197,6 +200,7 @@ const confirmCode = async (req, res) => {
   const email = userinfo.email;
   console.log(email, code, VerifyCodeList[email]);
   if (parseInt(VerifyCodeList[email]) == code) {
+    await updateUserEmailVerify(userinfo.id);
     res.status(200).json({
       result: "success",
     });
