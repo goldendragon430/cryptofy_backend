@@ -260,8 +260,8 @@ const addAffilateBonus = async (user_id, amount) => {
       if (ref_id > 0) {
         var bonus_rate = config["bonus_rate"];
         var aff_bonus = config["level_1"];
-        var bonus = Math.floor(aff_bonus * amount * bonus_rate);
-        var query_str = `UPDATE mining set total_power = total_power + ${bonus}  where user_id = ${ref_id}`;
+        var bonus = Math.floor(aff_bonus * amount);
+        var query_str = `UPDATE mining set balance = balance + ${bonus}  where user_id = ${ref_id}`;
         await query(query_str);
         await addAffiliateTrs(ref_id, user_id, 1, amount, bonus, "deposit");
       }
@@ -277,8 +277,8 @@ const addAffilateBonus = async (user_id, amount) => {
       if (ref_id > 0) {
         var bonus_rate = config["bonus_rate"];
         var aff_bonus = config["level_2"];
-        var bonus = Math.floor(aff_bonus * amount * bonus_rate);
-        query_str = `UPDATE mining set total_power = total_power + ${bonus}  where user_id = ${ref_id}`;
+        var bonus = Math.floor(aff_bonus * amount);
+        query_str = `UPDATE mining set balance = balance + ${bonus}  where user_id = ${ref_id}`;
         await query(query_str);
         await addAffiliateTrs(ref_id, user_id, 2, amount, bonus, "deposit");
       }
@@ -294,8 +294,8 @@ const addAffilateBonus = async (user_id, amount) => {
       if (ref_id > 0) {
         var bonus_rate = config["bonus_rate"];
         var aff_bonus = config["level_3"];
-        var bonus = Math.floor(aff_bonus * amount * bonus_rate);
-        query_str = `UPDATE mining set total_power = total_power + ${bonus}  where user_id = ${ref_id}`;
+        var bonus = Math.floor(aff_bonus * amount);
+        query_str = `UPDATE mining set balance = balance + ${bonus}  where user_id = ${ref_id}`;
         await query(query_str);
         await addAffiliateTrs(ref_id, user_id, 3, amount, bonus, "deposit");
       }
@@ -347,7 +347,7 @@ const updatePlanConfig = async (data) => {
   }
 };
 
-const addInvestPlan = async (user_id, amount, period, bonus) => {
+const addInvestPlan = async (user_id, amount, period, bonus, level) => {
   try {
     console.log(bonus);
     const rows = await query(
@@ -360,7 +360,7 @@ const addInvestPlan = async (user_id, amount, period, bonus) => {
         );
         console.log(period);
         await query(
-          `INSERT INTO plan (user_id, start_time, end_time, amount, bonus,active) VALUES (${user_id}, CURRENT_TIME(), DATE_ADD(NOW(), INTERVAL ${period} DAY), ${amount}, ${bonus}, 1)`
+          `INSERT INTO plan (user_id, start_time, end_time, amount, bonus,active,level) VALUES (${user_id}, CURRENT_TIME(), DATE_ADD(NOW(), INTERVAL ${period} DAY), ${amount}, ${bonus}, 1,${level})`
         );
         return true;
       }
@@ -372,6 +372,52 @@ const addInvestPlan = async (user_id, amount, period, bonus) => {
   }
 };
 
+const miningStatics = async () => {
+  try {
+    var total_deposit = await query(
+      `select sum(amount) as total_deposit, count(amount) as total_deposit_count from transactions where type = 'deposite'`
+    );
+    total_deposit = total_deposit[0];
+
+    var total_withdrawl = await query(
+      `select sum(amount) as total_withdrawl, count(amount) as total_withdrawl_count from transactions where type = 'withdrawl'`
+    );
+    total_withdrawl = total_withdrawl[0];
+
+    var today_deposite = await query(
+      `select sum(amount) as day_deposite, count(amount) as today_deposit_count from transactions where  DATE(time) = CURDATE() and type = 'deposite'`
+    );
+    today_deposite = today_deposite[0];
+
+    return {
+      total_deposit: total_deposit["total_deposit"],
+      today_withdrawal: total_withdrawl["total_withdrawl"],
+      day_deposit: today_deposite["day_deposite"],
+      day_number_deposit: today_deposite["today_deposit_count"],
+      number_deposit: total_deposit["total_deposit_count"],
+      number_withdrawal: total_withdrawl["total_withdrawl_count"],
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      total_deposit: 0,
+      today_withdrawal: 0,
+      day_deposit: 0,
+      day_number_deposit: 0,
+      number_deposit: 0,
+      number_withdrawal: 0,
+    };
+  }
+};
+
+const stakingPlan = async (user_id) => {
+  try {
+    var rows = await query(`select * from plan where user_id = ${user_id}`);
+    return rows;
+  } catch (err) {
+    return false;
+  }
+};
 module.exports = {
   getCurrentPower,
   reInvestTron,
@@ -386,4 +432,6 @@ module.exports = {
   getPlanConfig,
   updatePlanConfig,
   addInvestPlan,
+  miningStatics,
+  stakingPlan,
 };

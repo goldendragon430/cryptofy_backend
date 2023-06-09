@@ -283,9 +283,9 @@ const getPlanConfiguration = async (req, res) => {
 const investPlan = async (req, res) => {
   try {
     const user_id = req.user;
-    const { amount, bonus, period } = req.body;
+    const { amount, bonus, period, level } = req.body;
     console.log(bonus);
-    const result = addInvestPlan(user_id, amount, period, bonus);
+    const result = addInvestPlan(user_id, amount, period, bonus, level);
     if (result) {
       res.status(200).json({
         result: "success",
