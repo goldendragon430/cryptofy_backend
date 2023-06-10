@@ -48,7 +48,7 @@ const getUserReward = async (user_id) => {
 const getAffiliateInfo = async (user_id) => {
   try {
     const rows = await query(
-      `SELECT level, count(*) as count, sum(bonus) as total from affilate WHERE user_id = ${user_id} and type = 'deposit' GROUP BY level ORDER BY level`
+      `SELECT level, count(*) as count, sum(amount) as total from affilate WHERE user_id = ${user_id} and type = 'deposit' GROUP BY level ORDER BY level`
     );
     return rows;
   } catch (err) {

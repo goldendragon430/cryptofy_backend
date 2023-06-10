@@ -8,7 +8,14 @@ var {
   getUserDetails,
 } = require("../Models/user.js");
 
-var { miningStatics, stakingPlan } = require("../Models/mining.js");
+var {
+  miningStatics,
+  stakingPlan,
+  gatewayInfo,
+  updateGateway,
+  contactInfo,
+  updateContact,
+} = require("../Models/mining.js");
 var { transactionList } = require("../Models/Transaction.js");
 const getUsersData = async (req, res) => {
   try {
@@ -154,7 +161,100 @@ const getTransaction = async (req, res) => {
     });
   }
 };
+const getGateway = async (req, res) => {
+  try {
+    const result = await gatewayInfo();
+    if (result)
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    else {
+      res.status(200).json({
+        result: "failed",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 
+const setGateway = async (req, res) => {
+  try {
+    const { pk, sk, min_d, min_w, max_w } = req.body;
+    const result = await updateGateway(pk, sk, min_d, min_w, max_w);
+    if (result == true)
+      res.status(200).json({
+        result: "success",
+      });
+    else
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const getContact = async (req, res) => {
+  try {
+    const result = await contactInfo();
+    if (result)
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    else {
+      res.status(200).json({
+        result: "failed",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const setContact = async (req, res) => {
+  try {
+    const { title, phone1, phone2, email1, email2, address } = req.body;
+    const result = await updateContact(
+      title,
+      phone1,
+      phone2,
+      email1,
+      email2,
+      address
+    );
+    if (result == true)
+      res.status(200).json({
+        result: "success",
+      });
+    else
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   getUsersData,
   setUserState,
@@ -165,4 +265,8 @@ module.exports = {
   userDetails,
   getStakingPlan,
   getTransaction,
+  getGateway,
+  setGateway,
+  getContact,
+  setContact,
 };

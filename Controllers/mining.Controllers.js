@@ -12,6 +12,8 @@ var {
   getPlanConfig,
   updatePlanConfig,
   addInvestPlan,
+  eventInfo,
+  miningInfo,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -303,6 +305,51 @@ const investPlan = async (req, res) => {
     });
   }
 };
+
+const getEventInfo = async (req, res) => {
+  try {
+    const result = await eventInfo();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getMiningInfo = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const result = await miningInfo(user_id);
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   getPower,
   setPower,
@@ -314,5 +361,7 @@ module.exports = {
   getPlanConfiguration,
   updatePlanConfiguration,
   investPlan,
+  getEventInfo,
+  getMiningInfo,
   test,
 };
