@@ -418,6 +418,85 @@ const stakingPlan = async (user_id) => {
     return false;
   }
 };
+const gatewayInfo = async () => {
+  try {
+    var rows = await query(
+      `select max_withdrawl, min_deposit, public_key, private_key from mining_configuration`
+    );
+    return rows;
+  } catch (err) {
+    return false;
+  }
+};
+const updateGateway = async (pk, sk, min_d, min_w, max_w) => {
+  try {
+    await query(
+      `Update mining_configuration set public_key = '${pk}' ,private_key = '${sk}', max_withdrawl = ${max_w}, min_withdrawl = ${min_w},  min_deposit = ${min_d}`
+    );
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+const contactInfo = async () => {
+  try {
+    var rows = await query(`select * from contact`);
+    return rows;
+  } catch (err) {
+    return false;
+  }
+};
+const updateContact = async (
+  title,
+  phone1,
+  phone2,
+  email1,
+  email2,
+  address
+) => {
+  try {
+    await query(
+      `Update contact set title = '${title}' ,phone1 = '${phone1}', phone2 = '${phone2}', email1 = '${email1}',  email2 = '${email2}',  address = '${address}'`
+    );
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+const eventInfo = async () => {
+  try {
+    var rows = await query(
+      `select bonus_rate, DATE(start_time) as start_day, DATE(DATE_ADD(start_time, INTERVAL time DAY)) as end_day   from event where type = 'common' and status = 1`
+    );
+    return rows[0];
+  } catch (err) {
+    return false;
+  }
+};
+const miningInfo = async (user_id) => {
+  try {
+    var rows = await query(
+      `select bonus_rate, min_deposit, daily_earning from mining_configuration`
+    );
+    return rows[0];
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+const getStackedPlan = async (user_id) => {
+  try {
+    var rows = await query(
+      `select count(*) as count from plan where user_id = ${user_id} and active = 1`
+    );
+    return rows[0]["count"];
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
 module.exports = {
   getCurrentPower,
   reInvestTron,
@@ -434,4 +513,11 @@ module.exports = {
   addInvestPlan,
   miningStatics,
   stakingPlan,
+  gatewayInfo,
+  updateGateway,
+  contactInfo,
+  updateContact,
+  eventInfo,
+  miningInfo,
+  getStackedPlan,
 };

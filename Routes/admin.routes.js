@@ -27,5 +27,9 @@ router.post(
   adminMiddleware,
   adminControllers.getTransaction
 );
+router.post("/get_gateway", adminMiddleware, adminControllers.getGateway);
+router.post("/set_gateway", adminMiddleware, adminControllers.setGateway);
+router.post("/get_contact", adminMiddleware, adminControllers.getContact);
+router.post("/set_contact", adminMiddleware, adminControllers.setContact);
 
 module.exports = router;

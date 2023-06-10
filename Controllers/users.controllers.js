@@ -12,11 +12,12 @@ var {
   getUserAddress,
   updateUserSeenTime,
   updateUserEmailVerify,
+  getUserDetails,
 } = require("../Models/user.js");
 const { createReward } = require("../Models/Reward.js");
 
 var { createAccount } = require("../Web3/web3.js");
-const { createPower } = require("../Models/Mining.js");
+const { createPower, getStackedPlan } = require("../Models/Mining.js");
 
 const userRegister = async (req, res) => {
   const clientIp = req.clientIp?.replace("::ffff:", "");
@@ -211,10 +212,30 @@ const confirmCode = async (req, res) => {
     });
   }
 };
+
+const getDetails = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const result = await getUserDetails(user_id);
+    const mining_earning = result["mining_earned"];
+    const data = await getStackedPlan(user_id);
+    res.status(200).json({
+      result: "success",
+      mining_earning: mining_earning,
+      staked: data,
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   userRegister,
   userLogin,
   userAddress,
   sendCode,
   confirmCode,
+  getDetails,
 };

@@ -8,5 +8,6 @@ router.post("/login", userControllers.userLogin);
 router.post("/get_deposite_address", checkAuth, userControllers.userAddress);
 router.post("/send_code", checkAuth, userControllers.sendCode);
 router.post("/confirm_code", checkAuth, userControllers.confirmCode);
+router.post("/details", checkAuth, userControllers.getDetails);
 
 module.exports = router;

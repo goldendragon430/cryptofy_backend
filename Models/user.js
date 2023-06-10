@@ -272,7 +272,11 @@ const getUserDetails = async (user_id) => {
     reinvested_amount = reinvested_amount[0]["total_amount"];
 
     var total_earned =
-      total_withdrawl + balance + reinvested_amount - total_deposit;
+      total_withdrawl +
+      balance +
+      reinvested_amount -
+      total_deposit +
+      staking_amount;
     var mining_earned = total_earned - staking_earned - affiliate_earned;
 
     return {
