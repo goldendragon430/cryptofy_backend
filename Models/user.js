@@ -62,7 +62,7 @@ const addUser = async (
 const getUserData = async (id) => {
   try {
     const rows = await query(
-      `SELECT id, email, role, state, username, wallet ,registered_time, DATEDIFF(NOW(),registered_time) as remain from user where id = ${id}`
+      `SELECT id, email, role, state, username, wallet ,registered_time, DATEDIFF(NOW(),registered_time) as remain,verified from user where id = ${id}`
     );
     return rows[0];
   } catch (err) {
@@ -84,12 +84,24 @@ const getUserSKey = async (id) => {
 const getUserDataByEmail = async (email) => {
   try {
     const rows = await query(
-      `SELECT id, email, password, role, state, username,wallet,registered_time, DATEDIFF(  NOW(), registered_time) as remain  from user where email = '${email}'`
+      `SELECT id, email, password, role, state, username,wallet,registered_time, DATEDIFF(  NOW(), registered_time) as remain ,verified from user where email = '${email}'`
     );
     return rows[0];
   } catch (err) {
     console.log(err);
     return false;
+  }
+};
+
+const getRegisterPower = async () => {
+  try {
+    const rows = await query(
+      `select registeration_bonus from mining_configuration`
+    );
+    return rows[0]["registeration_bonus"];
+  } catch (err) {
+    console.log(err);
+    return 0;
   }
 };
 
@@ -162,6 +174,51 @@ const getAdminKey = async () => {
     return "";
   }
 };
+const getContactEmail = async () => {
+  try {
+    const rows = await query(`SELECT email1,email2 from contact`);
+    return rows[0];
+  } catch (err) {
+    console.log(err);
+    return "";
+  }
+};
+
+const statisticsInfo = async () => {
+  try {
+    var rows = await query(`select count(*) as count from user`);
+    var all_users = rows[0]["count"];
+
+    rows = await query(
+      `select sum(amount) as amount from transactions where type = 'withdrawl'`
+    );
+    var w_amount = rows[0]["amount"];
+
+    rows = await query(
+      `select count(*) as day_users from user where DATE(last_seen_time) = CURRENT_DATE()`
+    );
+    var day_users = rows[0]["day_users"];
+
+    rows = await query(
+      `select sum(amount) as amount from transactions where type = 'deposite'`
+    );
+    var d_amount = rows[0]["amount"];
+    return {
+      users: all_users,
+      w_amount: w_amount,
+      d_amount: d_amount,
+      day_users: day_users,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      users: 0,
+      w_amount: 0,
+      d_amount: 0,
+      day_users: 0,
+    };
+  }
+};
 
 const userStatics = async () => {
   try {
@@ -207,6 +264,34 @@ const registeredUser = async (type) => {
     } else if (type == "hour") {
       var hour_users = await query(
         `SELECT count(*) as count, HOUR(registered_time) as title  FROM user WHERE registered_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR) GROUP BY HOUR(registered_time);`
+      );
+      return hour_users;
+    } else {
+      return [];
+    }
+
+    return data;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
+};
+
+const transAnalytics = async (pay_type, type) => {
+  try {
+    if (type == "month") {
+      var month_users = await query(
+        `SELECT count(*) as count, MONTH(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 MONTH) and type = '${pay_type}' GROUP BY MONTH(time)`
+      );
+      return month_users;
+    } else if (type == "day") {
+      var day_users = await query(
+        `SELECT count(*) as count, DAY(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 DAY) and type = '${pay_type}' GROUP BY DAY(time)`
+      );
+      return day_users;
+    } else if (type == "hour") {
+      var hour_users = await query(
+        `SELECT count(*) as count, HOUR(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 HOUR) and type = '${pay_type}' GROUP BY HOUR(time);`
       );
       return hour_users;
     } else {
@@ -323,4 +408,8 @@ module.exports = {
   userStatics,
   registeredUser,
   getUserDetails,
+  transAnalytics,
+  getRegisterPower,
+  getContactEmail,
+  statisticsInfo,
 };

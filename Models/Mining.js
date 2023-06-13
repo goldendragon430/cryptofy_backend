@@ -149,6 +149,13 @@ const depositeTron = async (amount, address, user_id) => {
       );
 
       if (remains[0]["remain"] == 0) bonus_rate = bonus_rate * 3;
+      else {
+        var result = await query(
+          `select bonus_rate/100 as rate from event where  status = 1 and type = 'common'`
+        );
+        result = result[0]["rate"];
+        bonus_rate = bonus_rate * result;
+      }
       var bonus = Math.ceil(amount * (bonus_rate + DEPOSITE_BONUS));
 
       var new_power = rows[0].power + bonus;
@@ -313,10 +320,18 @@ const getConfig = async () => {
     return false;
   }
 };
-const updateConfig = async (bonus_rate, min_r, min_w, lev_1, lev_2, lev_3) => {
+const updateConfig = async (
+  bonus_rate,
+  min_r,
+  registeration_bonus,
+  daily_earning,
+  lev_1,
+  lev_2,
+  lev_3
+) => {
   try {
     var rows = await query(
-      `update mining_configuration set bonus_rate = ${bonus_rate}, min_reinvest = ${min_r}, min_withdrawl = ${min_w}, level_1 = ${lev_1}, level_2 = ${lev_2}, level_3 = ${lev_3} `
+      `update mining_configuration set bonus_rate = ${bonus_rate}, min_reinvest = ${min_r}, registeration_bonus = ${registeration_bonus},daily_earning = ${daily_earning}, level_1 = ${lev_1}, level_2 = ${lev_2}, level_3 = ${lev_3} `
     );
     return true;
   } catch (err) {
@@ -421,7 +436,7 @@ const stakingPlan = async (user_id) => {
 const gatewayInfo = async () => {
   try {
     var rows = await query(
-      `select max_withdrawl, min_deposit, public_key, private_key from mining_configuration`
+      `select max_withdrawl,min_withdrawl, min_deposit, public_key, private_key from mining_configuration`
     );
     return rows;
   } catch (err) {
@@ -468,7 +483,7 @@ const updateContact = async (
 const eventInfo = async () => {
   try {
     var rows = await query(
-      `select bonus_rate, DATE(start_time) as start_day, DATE(DATE_ADD(start_time, INTERVAL time DAY)) as end_day   from event where type = 'common' and status = 1`
+      `select bonus_rate, start_time as start_day, (DATE_ADD(start_time, INTERVAL time DAY)) as end_day   from event where type = 'common' and status = 1`
     );
     return rows[0];
   } catch (err) {
@@ -478,7 +493,7 @@ const eventInfo = async () => {
 const miningInfo = async (user_id) => {
   try {
     var rows = await query(
-      `select bonus_rate, min_deposit, daily_earning from mining_configuration`
+      `select bonus_rate, min_deposit, daily_earning,daily_earning/3600/24 as speed from mining_configuration`
     );
     return rows[0];
   } catch (err) {

@@ -199,11 +199,20 @@ const getConfiguration = async (req, res) => {
 };
 const updateConfiguration = async (req, res) => {
   try {
-    const { bonus_rate, min_r, min_w, lev_1, lev_2, lev_3 } = req.body;
+    const {
+      bonus_rate,
+      min_r,
+      registeration_bonus,
+      daily_earning,
+      lev_1,
+      lev_2,
+      lev_3,
+    } = req.body;
     const result = await updateConfig(
       bonus_rate,
       min_r,
-      min_w,
+      registeration_bonus,
+      daily_earning,
       lev_1,
       lev_2,
       lev_3
