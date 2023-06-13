@@ -5,7 +5,9 @@ var {
   suspendUser,
   userStatics,
   registeredUser,
+  transAnalytics,
   getUserDetails,
+  statisticsInfo,
 } = require("../Models/user.js");
 
 var {
@@ -15,8 +17,14 @@ var {
   updateGateway,
   contactInfo,
   updateContact,
-} = require("../Models/mining.js");
-var { transactionList } = require("../Models/Transaction.js");
+} = require("../Models/Mining.js");
+var { getAffiliateTrs } = require("../Models/Reward");
+var {
+  transactionList,
+  userTransacion,
+  transactionInfo,
+  eventCreate,
+} = require("../Models/Transaction.js");
 const getUsersData = async (req, res) => {
   try {
     const { search_str } = req.body;
@@ -78,10 +86,14 @@ const userRegisters = async (req, res) => {
   try {
     const { type } = req.body;
     const result = await registeredUser(type);
-
+    const date = new Date();
     res.status(200).json({
       result: "success",
       data: result,
+      day: date.getDate(),
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+      hour: date.getHours(),
     });
   } catch (err) {
     console.log(err);
@@ -146,8 +158,14 @@ const getStakingPlan = async (req, res) => {
 };
 const getTransaction = async (req, res) => {
   try {
-    const { key_str, start_date, end_date, type } = req.body;
-    const result = await transactionList(key_str, start_date, end_date, type);
+    const { key_str, start_date, end_date, type, status } = req.body;
+    const result = await transactionList(
+      key_str,
+      start_date,
+      end_date,
+      type,
+      status
+    );
 
     res.status(200).json({
       result: "success",
@@ -255,6 +273,117 @@ const setContact = async (req, res) => {
     });
   }
 };
+const transactionAnalytics = async (req, res) => {
+  try {
+    const { type, pay_type } = req.body;
+    const result = await transAnalytics(pay_type, type);
+    const date = new Date();
+    res.status(200).json({
+      result: "success",
+      data: result,
+      day: date.getDate(),
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+      hour: date.getHours(),
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getUserTransaction = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    const result = await userTransacion(user_id);
+
+    res.status(200).json({
+      result: "success",
+      data: result,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getUserAffiliates = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    const data = await getAffiliateTrs(user_id);
+
+    res.status(200).json({
+      result: "success",
+      data: data,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const getTransactionInfo = async (req, res) => {
+  try {
+    const { transaction_id } = req.body;
+    const data = await transactionInfo(transaction_id);
+
+    res.status(200).json({
+      result: "success",
+      data: data,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+const createEvent = async (req, res) => {
+  try {
+    const { title, rate, time } = req.body;
+    const result = await eventCreate(title, rate, time);
+    if (result == true)
+      res.status(200).json({
+        result: "success",
+      });
+    else
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
+const getStatistics = async (req, res) => {
+  try {
+    const data = await statisticsInfo();
+
+    res.status(200).json({
+      result: "success",
+      data: data,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   getUsersData,
   setUserState,
@@ -269,4 +398,10 @@ module.exports = {
   setGateway,
   getContact,
   setContact,
+  transactionAnalytics,
+  getUserTransaction,
+  getUserAffiliates,
+  getTransactionInfo,
+  createEvent,
+  getStatistics,
 };

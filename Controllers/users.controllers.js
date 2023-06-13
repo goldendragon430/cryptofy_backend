@@ -13,6 +13,8 @@ var {
   updateUserSeenTime,
   updateUserEmailVerify,
   getUserDetails,
+  getRegisterPower,
+  getContactEmail,
 } = require("../Models/user.js");
 const { createReward } = require("../Models/Reward.js");
 
@@ -43,8 +45,14 @@ const userRegister = async (req, res) => {
         );
 
         if (newUserID > 0) {
-          await createReward("registeration", 0, INIT_POWER, newUserID);
-          await createPower(newUserID, INIT_POWER);
+          const registeration_power = await getRegisterPower();
+          await createReward(
+            "registeration",
+            0,
+            registeration_power,
+            newUserID
+          );
+          await createPower(newUserID, registeration_power);
           //get user's information
           const userinfo = await getUserData(newUserID);
 
@@ -231,6 +239,59 @@ const getDetails = async (req, res) => {
     });
   }
 };
+
+const sendContacts = async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  try {
+    const user_id = req.user;
+    const contactEmail = await getContactEmail();
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "ruka0430petri@gmail.com",
+        pass: "nnkkclzckscepylm",
+      },
+    });
+    console.log(contactEmail["email1"]);
+    var mailOptions = {
+      from: "ruka0430petri@gmail.com",
+      to: contactEmail["email1"],
+      subject: "Verify Code",
+      html: `<html>
+                <body>
+                  <center>
+                    <p>From ${name}</p>  
+                    <h2>${subject}</h2>
+                    <p>${message}</p>
+                    <p>${email}</p>    
+                  </center>
+                </body>         
+           </html>`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error, "mail send error");
+        res.status(400).json({
+          result: "failed",
+          msg: "Server Error",
+        });
+        return;
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+    res.status(200).json({
+      result: "success",
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   userRegister,
   userLogin,
@@ -238,4 +299,5 @@ module.exports = {
   sendCode,
   confirmCode,
   getDetails,
+  sendContacts,
 };

@@ -10,11 +10,7 @@ router.post("/withdrawal", userMiddleware, miningControllers.withdrawl);
 router.post("/check_deposite", userMiddleware, miningControllers.checkDeposite);
 router.post("/invest_plan", userMiddleware, miningControllers.investPlan);
 router.post("/test", userMiddleware, miningControllers.test);
-router.post(
-  "/get_configuration",
-  userMiddleware,
-  miningControllers.getConfiguration
-);
+router.post("/get_configuration", miningControllers.getConfiguration);
 router.post(
   "/update_configuration",
   userMiddleware,

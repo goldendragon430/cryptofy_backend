@@ -4,5 +4,6 @@ const transactionControllers = require("../Controllers/transaction.Controllers")
 const router = express.Router();
 
 router.post("/get", userMiddleware, transactionControllers.getTransaction);
+router.post("/all", transactionControllers.allTrnasaction);
 
 module.exports = router;
