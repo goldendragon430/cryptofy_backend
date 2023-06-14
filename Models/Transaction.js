@@ -15,7 +15,7 @@ const addTransaction = async (type, amount, hash, user_id) => {
 const getTransactionList = async (type, uid) => {
   try {
     const rows = await query(
-      `select * from transactions  where type = '${type}' and user_id = ${uid}`
+      `select * from transactions  where type = '${type}' and user_id = ${uid}  ORDER BY time DESC`
     );
     return rows;
   } catch (err) {
@@ -29,11 +29,11 @@ const transactionList = async (key_str, start_date, end_date, type, status) => {
     var rows;
     if (status == null || status == 0)
       rows = await query(
-        `select transactions.id as id, user.id as user_id, transactions.time, transactions.hash, transactions.amount, transactions.state ,user.wallet from transactions INNER JOIN user on transactions.user_id = user.id where (user.id like '%${key_str}%' or user.wallet like '%${key_str}%') and  transactions.time > DATE('${start_date}') and transactions.time < DATE('${end_date}') and transactions.type = '${type}'`
+        `select transactions.id as id, user.id as user_id, transactions.time, transactions.hash, transactions.amount, transactions.state ,user.wallet from transactions INNER JOIN user on transactions.user_id = user.id where (user.id like '%${key_str}%' or user.wallet like '%${key_str}%') and  transactions.time > DATE('${start_date}') and transactions.time < DATE('${end_date}') and transactions.type = '${type}' ORDER BY transactions.time DESC`
       );
     else
       rows = await query(
-        `select transactions.id as id, user.id as user_id, transactions.time, transactions.hash, transactions.amount, transactions.state ,user.wallet from transactions INNER JOIN user on transactions.user_id = user.id where (user.id like '%${key_str}%' or user.wallet like '%${key_str}%') and  transactions.time > DATE('${start_date}') and transactions.time < DATE('${end_date}') and transactions.type = '${type}' and  transactions.state = ${status}`
+        `select transactions.id as id, user.id as user_id, transactions.time, transactions.hash, transactions.amount, transactions.state ,user.wallet from transactions INNER JOIN user on transactions.user_id = user.id where (user.id like '%${key_str}%' or user.wallet like '%${key_str}%') and  transactions.time > DATE('${start_date}') and transactions.time < DATE('${end_date}') and transactions.type = '${type}' and  transactions.state = ${status} ORDER BY transactions.time DESC`
       );
 
     return rows;
@@ -46,11 +46,11 @@ const transactionList = async (key_str, start_date, end_date, type, status) => {
 const userTransacion = async (user_id) => {
   try {
     var rows = await query(
-      `select time, hash, amount from transactions where user_id = ${user_id}  and type = 'deposite'
+      `select time, hash, amount from transactions where user_id = ${user_id}  and type = 'deposite' ORDER BY time DESC
       `
     );
     var rows_2 = await query(
-      `select time, hash,amount from transactions where user_id = ${user_id}  and type = 'withdrawl'
+      `select time, hash,amount from transactions where user_id = ${user_id}  and type = 'withdrawl' ORDER BY time DESC
       `
     );
     if (rows.length > 3) rows = rows.slice(0, 3);
@@ -71,7 +71,7 @@ const userTransacion = async (user_id) => {
 const transactionInfo = async (transaction_id) => {
   try {
     const rows = await query(
-      `select transactions.id, transactions.time, transactions.amount, transactions.hash,transactions.state,transactions.other,user.wallet ,user.username from transactions INNER JOIN user on transactions.user_id = user.id where transactions.id = ${transaction_id}`
+      `select transactions.id, transactions.time, transactions.amount, transactions.hash,transactions.state,transactions.other,user.wallet ,user.username from transactions INNER JOIN user on transactions.user_id = user.id where transactions.id = ${transaction_id} ORDER BY transactions.time DESC`
     );
     return rows[0];
   } catch (err) {
@@ -97,7 +97,7 @@ const eventCreate = async (title, rate, time) => {
 };
 const allTrnasactionList = async (transaction_id) => {
   try {
-    const rows = await query(`select * from transactions`);
+    const rows = await query(`select * from transactions ORDER BY time DESC`);
     return rows;
   } catch (err) {
     return [];

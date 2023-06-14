@@ -207,6 +207,8 @@ const updateConfiguration = async (req, res) => {
       lev_1,
       lev_2,
       lev_3,
+      limited_time,
+      limited_bonus,
     } = req.body;
     const result = await updateConfig(
       bonus_rate,
@@ -215,7 +217,9 @@ const updateConfiguration = async (req, res) => {
       daily_earning,
       lev_1,
       lev_2,
-      lev_3
+      lev_3,
+      limited_time,
+      limited_bonus
     );
     if (result == false) {
       res.status(400).json({

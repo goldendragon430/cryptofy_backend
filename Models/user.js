@@ -47,8 +47,10 @@ const addUser = async (
   referral
 ) => {
   try {
-    var country = geoip.lookup(ip);
+    var country = geoip.lookup("176.204.29.1");
+
     if (country == null) country = "US";
+    else country = country["country"];
     const rows = await query(
       `INSERT INTO user(username, email, password, ip, wallet, data, referral, registered_time, last_seen_time, country) VALUES ('${username}', '${email}', '${password}', '${ip}', '${wallet}', '${key}', ${referral}, CURRENT_TIME(), CURRENT_TIME(), '${country}')`
     );
@@ -108,7 +110,7 @@ const getRegisterPower = async () => {
 const getUserList = async (search_str) => {
   try {
     var rows = await query(
-      `select user.id, wallet, referral,state, power from user INNER JOIN mining on user.id = mining.user_id where  (wallet LIKE '%${search_str}%' or user.id LIKE '%${search_str}%') and user.role > 0 `
+      `select user.id, email, referral,state, power from user INNER JOIN mining on user.id = mining.user_id where  (email LIKE '%${search_str}%' or user.id LIKE '%${search_str}%') and user.role > 0 `
     );
     for (var i = 0; i < rows.length; i++) {
       rows[i].state = rows[i].state == 1;
@@ -281,17 +283,17 @@ const transAnalytics = async (pay_type, type) => {
   try {
     if (type == "month") {
       var month_users = await query(
-        `SELECT count(*) as count, MONTH(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 MONTH) and type = '${pay_type}' GROUP BY MONTH(time)`
+        `SELECT count(*) as count, MONTH(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 MONTH) and type = '${pay_type}' GROUP BY MONTH(time)`
       );
       return month_users;
     } else if (type == "day") {
       var day_users = await query(
-        `SELECT count(*) as count, DAY(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 DAY) and type = '${pay_type}' GROUP BY DAY(time)`
+        `SELECT count(*) as count, DAY(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 DAY) and type = '${pay_type}' GROUP BY DAY(time)`
       );
       return day_users;
     } else if (type == "hour") {
       var hour_users = await query(
-        `SELECT count(*) as count, HOUR(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 6 HOUR) and type = '${pay_type}' GROUP BY HOUR(time);`
+        `SELECT count(*) as count, HOUR(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 HOUR) and type = '${pay_type}' GROUP BY HOUR(time);`
       );
       return hour_users;
     } else {
@@ -393,13 +395,29 @@ const getUserDetails = async (user_id) => {
 };
 const limitedTime = async (user_id) => {
   try {
+    const MineResult = await query(
+      `select limited_time, limited_bonus  from mining_configuration`
+    );
+
     const rows = await query(
       `select TIMESTAMPDIFF(SECOND, registered_time, NOW()) as remain from user where id = ${user_id}`
     );
-    return rows[0]["remain"];
+    if (rows[0]["remain"] / 60 > MineResult[0]["limited_time"])
+      return {
+        result: false,
+      };
+    else {
+      return {
+        result: true,
+        bonus_rate: MineResult[0]["limited_bonus"],
+        remains: MineResult[0]["limited_time"] * 60 - rows[0]["remain"],
+      };
+    }
   } catch (err) {
     console.log(err);
-    return "";
+    return {
+      result: false,
+    };
   }
 };
 module.exports = {
