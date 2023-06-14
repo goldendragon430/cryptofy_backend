@@ -6,7 +6,7 @@ const isExistUserByEmail = async (email) => {
     const rows = await query(
       `SELECT count(*) as result from user where email = '${email}'`
     );
-    return rows[0]["result"] == 1;
+    return rows[0]["result"] > 0;
   } catch (err) {
     console.log(err);
     return false;
@@ -391,6 +391,17 @@ const getUserDetails = async (user_id) => {
     };
   }
 };
+const limitedTime = async (user_id) => {
+  try {
+    const rows = await query(
+      `select TIMESTAMPDIFF(SECOND, registered_time, NOW()) as remain from user where id = ${user_id}`
+    );
+    return rows[0]["remain"];
+  } catch (err) {
+    console.log(err);
+    return "";
+  }
+};
 module.exports = {
   isExistUserByEmail,
   isExistUserByIP,
@@ -412,4 +423,5 @@ module.exports = {
   getRegisterPower,
   getContactEmail,
   statisticsInfo,
+  limitedTime,
 };

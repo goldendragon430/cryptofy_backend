@@ -10,5 +10,6 @@ router.post("/send_code", checkAuth, userControllers.sendCode);
 router.post("/confirm_code", checkAuth, userControllers.confirmCode);
 router.post("/details", checkAuth, userControllers.getDetails);
 router.post("/send_contact", userControllers.sendContacts);
+router.post("/get_remains_limit", checkAuth, userControllers.getLimitedTime);
 
 module.exports = router;

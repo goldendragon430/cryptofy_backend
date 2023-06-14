@@ -15,6 +15,7 @@ var {
   getUserDetails,
   getRegisterPower,
   getContactEmail,
+  limitedTime,
 } = require("../Models/user.js");
 const { createReward } = require("../Models/Reward.js");
 
@@ -291,7 +292,21 @@ const sendContacts = async (req, res) => {
     });
   }
 };
-
+const getLimitedTime = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const result = await limitedTime(user_id);
+    res.status(200).json({
+      result: "success",
+      data: result,
+    });
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
 module.exports = {
   userRegister,
   userLogin,
@@ -300,4 +315,5 @@ module.exports = {
   confirmCode,
   getDetails,
   sendContacts,
+  getLimitedTime,
 };
