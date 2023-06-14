@@ -327,11 +327,13 @@ const updateConfig = async (
   daily_earning,
   lev_1,
   lev_2,
-  lev_3
+  lev_3,
+  limited_time,
+  limited_bonus
 ) => {
   try {
     var rows = await query(
-      `update mining_configuration set bonus_rate = ${bonus_rate}, min_reinvest = ${min_r}, registeration_bonus = ${registeration_bonus},daily_earning = ${daily_earning}, level_1 = ${lev_1}, level_2 = ${lev_2}, level_3 = ${lev_3} `
+      `update mining_configuration set limited_time = ${limited_time},limited_bonus = ${limited_bonus},  bonus_rate = ${bonus_rate}, min_reinvest = ${min_r}, registeration_bonus = ${registeration_bonus},daily_earning = ${daily_earning}, level_1 = ${lev_1}, level_2 = ${lev_2}, level_3 = ${lev_3} `
     );
     return true;
   } catch (err) {
@@ -483,7 +485,7 @@ const updateContact = async (
 const eventInfo = async () => {
   try {
     var rows = await query(
-      `select bonus_rate, start_time as start_day, (DATE_ADD(start_time, INTERVAL time DAY)) as end_day   from event where type = 'common' and status = 1`
+      `select bonus_rate, start_time as start_day, (DATE_ADD(start_time, INTERVAL time MINUTE)) as end_day   from event where type = 'common' and status = 1`
     );
     return rows[0];
   } catch (err) {
