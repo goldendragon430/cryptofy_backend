@@ -169,7 +169,12 @@ const depositeTron = async (amount, address, user_id) => {
         `SELECT DATEDIFF(NOW(),registered_time) as remain from user where id = ${user_id}`
       );
 
-      if (remains[0]["remain"] == 0) bonus_rate = bonus_rate * 3;
+      if (remains[0]["remain"] == 0) {
+        const Registeration_bonus_rate = await query(
+          `SELECT bonus_rate from event where type = 'registeration'`
+        );
+        bonus_rate = bonus_rate * Registeration_bonus_rate[0].bonus_rate;
+      }
       else {
         var result = await query(
           `select bonus_rate/100 as rate from event where  status = 1 and type = 'common'`
@@ -188,7 +193,7 @@ const depositeTron = async (amount, address, user_id) => {
         `Update mining set power = ${new_power} ,balance = ${new_balance}, total_power = ${total_power} where user_id = ${user_id}`
       );
 
-      await createReward("deposite", amount, bonus, user_id);
+      await createReward("deposite", amount - 1, bonus, user_id);
 
       return {
         success: true,
@@ -521,7 +526,7 @@ const updateContact = async (
 const eventInfo = async () => {
   try {
     var rows = await query(
-      `select bonus_rate, start_time as start_day, (DATE_ADD(start_time, INTERVAL time MINUTE)) as end_day   from event where type = 'common' and status = 1`
+      `select note, bonus_rate, start_time as start_day, (DATE_ADD(start_time, INTERVAL time MINUTE)) as end_day   from event where type = 'common' and status = 1`
     );
     return rows[0];
   } catch (err) {
