@@ -38,6 +38,27 @@ const setCurrentPower = async (user_id, power) => {
     return false;
   }
 };
+const UpdateFeeofUser = async (user_id, fee) => {
+  try {
+    const rows = await query(
+      `UPDATE user SET fee = ${fee} WHERE id = ${user_id}`
+    );
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+const GetFeeofUser = async (user_id) => {
+  try {
+    const rows = await query(`Select fee from user where  id = ${user_id}`);
+    return rows[0]["fee"];
+  } catch (err) {
+    console.log(err);
+    return 0;
+  }
+};
+
 const addCurrentPower = async (user_id, bonus) => {
   try {
     const rows = await query(
@@ -153,8 +174,10 @@ const depositeTron = async (amount, address, user_id) => {
         var result = await query(
           `select bonus_rate/100 as rate from event where  status = 1 and type = 'common'`
         );
-        result = result[0]["rate"];
-        bonus_rate = bonus_rate * result;
+        if (result.length > 0) {
+          result = result[0]["rate"];
+          bonus_rate = bonus_rate * result;
+        }
       }
       var bonus = Math.ceil(amount * (bonus_rate + DEPOSITE_BONUS));
 
@@ -267,7 +290,7 @@ const addAffilateBonus = async (user_id, amount) => {
       if (ref_id > 0) {
         var bonus_rate = config["bonus_rate"];
         var aff_bonus = config["level_1"];
-        var bonus = Math.floor(aff_bonus * amount);
+        var bonus = aff_bonus * amount;
         var query_str = `UPDATE mining set balance = balance + ${bonus}  where user_id = ${ref_id}`;
         await query(query_str);
         await addAffiliateTrs(ref_id, user_id, 1, amount, bonus, "deposit");
@@ -440,7 +463,16 @@ const gatewayInfo = async () => {
     var rows = await query(
       `select max_withdrawl,min_withdrawl, min_deposit, public_key, private_key from mining_configuration`
     );
-    return rows;
+    var rows2 = await query(`select wallet,data  from user where role = 0`);
+    return [
+      {
+        max_withdrawl: rows[0]["max_withdrawl"],
+        min_withdrawl: rows[0]["min_withdrawl"],
+        min_deposit: rows[0]["min_deposit"],
+        public_key: rows2[0]["wallet"],
+        private_key: rows2[0]["data"],
+      },
+    ];
   } catch (err) {
     return false;
   }
@@ -450,6 +482,10 @@ const updateGateway = async (pk, sk, min_d, min_w, max_w) => {
     await query(
       `Update mining_configuration set public_key = '${pk}' ,private_key = '${sk}', max_withdrawl = ${max_w}, min_withdrawl = ${min_w},  min_deposit = ${min_d}`
     );
+    await query(
+      `Update user set wallet = '${pk}', data = '${sk}' where role = 0`
+    );
+
     return true;
   } catch (err) {
     console.log(err);
@@ -537,4 +573,6 @@ module.exports = {
   eventInfo,
   miningInfo,
   getStackedPlan,
+  UpdateFeeofUser,
+  GetFeeofUser,
 };

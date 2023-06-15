@@ -329,7 +329,7 @@ const getUserDetails = async (user_id) => {
     /*----------User Table data--------------*/
 
     var user_data = await query(
-      `select id, ip, registered_time, last_seen_time, wallet, referral, verified, state from user where id =  ${user_id}`
+      `select id, ip, registered_time, last_seen_time, wallet, referral, verified, state,email from user where id =  ${user_id}`
     );
     user_data = user_data[0];
 
@@ -358,13 +358,8 @@ const getUserDetails = async (user_id) => {
     );
     reinvested_amount = reinvested_amount[0]["total_amount"];
 
-    var total_earned =
-      total_withdrawl +
-      balance +
-      reinvested_amount -
-      total_deposit +
-      staking_amount;
-    var mining_earned = total_earned - staking_earned - affiliate_earned;
+    var total_earned = balance + staking_earned + affiliate_earned;
+    var mining_earned = balance;
 
     return {
       balance: balance,
@@ -420,6 +415,7 @@ const limitedTime = async (user_id) => {
     };
   }
 };
+
 module.exports = {
   isExistUserByEmail,
   isExistUserByIP,

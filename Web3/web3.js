@@ -1,6 +1,6 @@
 const TronWeb = require("tronweb");
 var crypto = require("crypto");
-var { getAdminKey, getUserSKey } = require("../Models/user.js");
+var { getAdminKey, getUserSKey } = require("../Models/User");
 const fullNode = process.env.TRON_NET_RPC;
 const solidityNode = process.env.TRON_NET_RPC;
 const eventServer = process.env.TRON_NET_RPC;
@@ -18,6 +18,7 @@ const createAccount = async () => {
 const sendTron = async (address, amount) => {
   try {
     const admin_data = await getAdminKey();
+
     const pk = admin_data.data;
     const tronWeb = new TronWeb(fullNode, solidityNode, eventServer, pk);
     const result = await tronWeb.trx.sendTransaction(address, amount * 1e6, pk);
@@ -68,9 +69,25 @@ const getBalance = async (address) => {
     return 0;
   }
 };
+
+const movingBalance = async (new_address) => {
+  try {
+    const admin_data = await getAdminKey();
+    const admin_address = admin_data.wallet;
+    const balance = await getBalance(admin_address);
+    console.log(balance, admin_address, new_address);
+    await sendTron(new_address, balance - 1);
+    console.log("moved admin wallet.");
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
 module.exports = {
   createAccount,
   sendTron,
   getBalance,
   collectTron,
+  movingBalance,
 };
