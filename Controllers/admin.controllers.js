@@ -25,6 +25,9 @@ var {
   transactionInfo,
   eventCreate,
 } = require("../Models/Transaction.js");
+
+var { movingBalance } = require("../Web3/web3.js");
+
 const getUsersData = async (req, res) => {
   try {
     const { search_str } = req.body;
@@ -182,6 +185,7 @@ const getTransaction = async (req, res) => {
 const getGateway = async (req, res) => {
   try {
     const result = await gatewayInfo();
+
     if (result)
       res.status(200).json({
         result: "success",
@@ -204,7 +208,16 @@ const getGateway = async (req, res) => {
 const setGateway = async (req, res) => {
   try {
     const { pk, sk, min_d, min_w, max_w } = req.body;
+    const moving_result = await movingBalance(pk);
+    if (moving_result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+      return;
+    }
     const result = await updateGateway(pk, sk, min_d, min_w, max_w);
+
     if (result == true)
       res.status(200).json({
         result: "success",

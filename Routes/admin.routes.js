@@ -23,11 +23,7 @@ router.post(
   adminControllers.userRegisters
 );
 router.post("/user_details", adminMiddleware, adminControllers.userDetails);
-router.post(
-  "/get_staking_plan",
-  adminMiddleware,
-  adminControllers.getStakingPlan
-);
+router.post("/get_staking_plan", adminControllers.getStakingPlan);
 router.post(
   "/get_transaction",
   adminMiddleware,

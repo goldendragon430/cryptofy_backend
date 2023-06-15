@@ -226,11 +226,13 @@ const getDetails = async (req, res) => {
   try {
     const user_id = req.user;
     const result = await getUserDetails(user_id);
-    const mining_earning = result["mining_earned"];
+
+    const staking_earned = result["staking_earned"];
+    const affiliate_earned = result["affiliate_earned"];
     const data = await getStackedPlan(user_id);
     res.status(200).json({
       result: "success",
-      mining_earning: mining_earning,
+      earned: staking_earned + affiliate_earned,
       staked: data,
     });
   } catch (err) {

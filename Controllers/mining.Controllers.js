@@ -14,6 +14,8 @@ var {
   addInvestPlan,
   eventInfo,
   miningInfo,
+  UpdateFeeofUser,
+  GetFeeofUser,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -138,28 +140,36 @@ const checkDeposite = async (req, res) => {
     const result = await getBalance(userinfo.wallet);
     console.log("balance ", result);
     if (result <= 2) {
+      await UpdateFeeofUser(user_id, result);
       res.status(200).json({
         result: "success",
         is_deposited: false,
       });
     } else {
+      const pre_balance = await GetFeeofUser(user_id);
+      console.log(result - pre_balance);
       const user_info = await depositeTron(
-        result - 1,
+        result - pre_balance + 1,
         userinfo.wallet,
         user_id
       );
       if (user_info.success) {
         /*------------GET BONUS-------------*/
-        await addTransaction("deposite", result - 1, user_info.txID, user_id);
+        await addTransaction(
+          "deposite",
+          result - pre_balance,
+          user_info.txID,
+          user_id
+        );
         var rewards = await getRandomBonus(user_id);
 
         /*------------Add Affiliate-------------*/
-        await addAffilateBonus(user_id, result - 1);
+        await addAffilateBonus(user_id, result - pre_balance);
 
         user_info["bonus_expired_time"] = rewards.remain_time;
         user_info["result"] = "success";
         user_info["is_deposited"] = true;
-        user_info["amount"] = result - 1;
+        user_info["amount"] = result - pre_balance;
         res.status(200).json(user_info);
       } else {
         res.status(400).json({

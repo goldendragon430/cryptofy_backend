@@ -48,9 +48,26 @@ const getUserReward = async (user_id) => {
 const getAffiliateInfo = async (user_id) => {
   try {
     const rows = await query(
-      `SELECT level, count(*) as count, sum(amount) as total from affilate WHERE user_id = ${user_id} and type = 'deposit' GROUP BY level ORDER BY level`
+      `SELECT sum(amount) as total from affilate WHERE user_id = ${user_id} and type = 'deposit'`
     );
-    return rows;
+    const total = rows[0]["total"] == null ? 0 : rows[0]["total"];
+
+    const level_1_rows = await query(
+      `select count(id) as count from user where referral = ${user_id}`
+    );
+    const level_2_rows = await query(
+      `select count(id) as count from user where referral in (select id from user where referral = ${user_id})`
+    );
+    const level_3_rows = await query(
+      `select count(id) as count from user where referral in (select id from user where referral in (select id from user where referral = ${user_id}))`
+    );
+
+    return [
+      level_1_rows[0]["count"] == null ? 0 : level_1_rows[0]["count"],
+      level_2_rows[0]["count"] == null ? 0 : level_2_rows[0]["count"],
+      level_3_rows[0]["count"] == null ? 0 : level_3_rows[0]["count"],
+      total,
+    ];
   } catch (err) {
     return [];
   }
