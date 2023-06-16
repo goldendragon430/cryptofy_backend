@@ -27,5 +27,7 @@ router.post(
   miningControllers.updatePlanConfiguration
 );
 router.post("/get_event_info", userMiddleware, miningControllers.getEventInfo);
+router.post("/get_current_event", miningControllers.getCurrentEventInfo);
+router.post("/update_event_state", miningControllers.updateEventState);
 router.post("/get_mining", userMiddleware, miningControllers.getMiningInfo);
 module.exports = router;

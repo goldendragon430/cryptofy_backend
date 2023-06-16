@@ -16,6 +16,8 @@ var {
   miningInfo,
   UpdateFeeofUser,
   GetFeeofUser,
+  currentEventInfo,
+  updateEvent,
 } = require("../Models/Mining");
 var { getRandomBonus } = require("../Models/Reward");
 const { getUserData } = require("../Models/user");
@@ -350,6 +352,29 @@ const getEventInfo = async (req, res) => {
     });
   }
 };
+
+const getCurrentEventInfo = async (req, res) => {
+  try {
+    const result = await currentEventInfo();
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+        data: result,
+      });
+    }
+  } catch (err) {
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
 const getMiningInfo = async (req, res) => {
   try {
     const user_id = req.user;
@@ -373,6 +398,30 @@ const getMiningInfo = async (req, res) => {
     });
   }
 };
+
+const updateEventState = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const result = await updateEvent(status);
+    if (result == false) {
+      res.status(400).json({
+        result: "failed",
+        msg: "Server Error",
+      });
+    } else {
+      res.status(200).json({
+        result: "success",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      result: "failed",
+      msg: "Server Error",
+    });
+  }
+};
+
 module.exports = {
   getPower,
   setPower,
@@ -387,4 +436,6 @@ module.exports = {
   getEventInfo,
   getMiningInfo,
   test,
+  getCurrentEventInfo,
+  updateEventState,
 };
