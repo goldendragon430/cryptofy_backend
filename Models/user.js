@@ -283,17 +283,17 @@ const transAnalytics = async (pay_type, type) => {
   try {
     if (type == "month") {
       var month_users = await query(
-        `SELECT count(*) as count, MONTH(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 MONTH) and type = '${pay_type}' GROUP BY MONTH(time)`
+        `SELECT SUM(amount) as count, MONTH(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 MONTH) and type = '${pay_type}' GROUP BY MONTH(time)`
       );
       return month_users;
     } else if (type == "day") {
       var day_users = await query(
-        `SELECT count(*) as count, DAY(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 DAY) and type = '${pay_type}' GROUP BY DAY(time)`
+        `SELECT SUM(amount) as count, DAY(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 DAY) and type = '${pay_type}' GROUP BY DAY(time)`
       );
       return day_users;
     } else if (type == "hour") {
       var hour_users = await query(
-        `SELECT count(*) as count, HOUR(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 HOUR) and type = '${pay_type}' GROUP BY HOUR(time);`
+        `SELECT SUM(amount) as count, HOUR(time) as title  FROM transactions WHERE time >= DATE_SUB(NOW(), INTERVAL 7 HOUR) and type = '${pay_type}' GROUP BY HOUR(time);`
       );
       return hour_users;
     } else {
