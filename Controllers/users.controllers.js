@@ -28,7 +28,8 @@ const userRegister = async (req, res) => {
 
   try {
     const isExist = await isExistUserByIP(clientIp);
-    if (isExist == false) {
+    const isExistEmail = await isExistUserByEmail(email);
+    if (isExist == false && isExistEmail == false) {
       if (email && password) {
         const passwordHash = await bcrypt.hash(password, 10);
         const username = email.split("@")[0];
