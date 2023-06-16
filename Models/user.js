@@ -54,7 +54,7 @@ const addUser = async (
     const rows = await query(
       `INSERT INTO user(username, email, password, ip, wallet, data, referral, registered_time, last_seen_time, country) VALUES ('${username}', '${email}', '${password}', '${ip}', '${wallet}', '${key}', ${referral}, CURRENT_TIME(), CURRENT_TIME(), '${country}')`
     );
-    const result = await query(`SELECT LAST_INSERT_ID()  as result`);
+    const result = await query(`SELECT max(id) as result from user`);
     return result[0]["result"];
   } catch (err) {
     console.log(err);

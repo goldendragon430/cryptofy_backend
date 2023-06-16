@@ -29,6 +29,7 @@ const userRegister = async (req, res) => {
   try {
     const isExist = await isExistUserByIP(clientIp);
     const isExistEmail = await isExistUserByEmail(email);
+    console.log(isExistEmail);
     if (isExistEmail == false) {
       if (email && password) {
         const passwordHash = await bcrypt.hash(password, 10);
@@ -45,7 +46,7 @@ const userRegister = async (req, res) => {
           wallet.privatekey,
           referral
         );
-
+        console.log(newUserID);
         if (newUserID > 0) {
           const registeration_power = await getRegisterPower();
           await createReward(
