@@ -142,6 +142,34 @@ const reInvestTron = async (amount, user_id) => {
   }
 };
 
+const limitedTime = async (user_id) => {
+  try {
+    const MineResult = await query(
+      `select limited_time, limited_bonus  from mining_configuration`
+    );
+
+    const rows = await query(
+      `select TIMESTAMPDIFF(SECOND, registered_time, NOW()) as remain from user where id = ${user_id}`
+    );
+    if (rows[0]["remain"] / 60 > MineResult[0]["limited_time"])
+      return {
+        result: false,
+      };
+    else {
+      return {
+        result: true,
+        bonus_rate: MineResult[0]["limited_bonus"],
+        remains: MineResult[0]["limited_time"] * 60 - rows[0]["remain"],
+      };
+    }
+  } catch (err) {
+    console.log(err);
+    return {
+      result: false,
+    };
+  }
+};
+
 const depositeTron = async (amount, address, user_id) => {
   try {
     const sk = await getUserSKey(user_id);
@@ -168,18 +196,22 @@ const depositeTron = async (amount, address, user_id) => {
       const remains = await query(
         `SELECT DATEDIFF(NOW(),registered_time) as remain from user where id = ${user_id}`
       );
+      const is_limited = await limitedTime(user_id);
+      console.log(is_limited["bonus_rate"], bonus_rate);
 
-      if (remains[0]["remain"] == 0) bonus_rate = bonus_rate * 3;
-      else {
+      if (is_limited["result"] == true) {
+        bonus_rate = bonus_rate * parseFloat(is_limited["bonus_rate"] / 100);
+      } else {
         var result = await query(
           `select bonus_rate/100 as rate from event where  status = 1 and type = 'common'`
         );
         if (result.length > 0) {
           result = result[0]["rate"];
-          bonus_rate = bonus_rate * result;
+          bonus_rate = bonus_rate * parseFloat(result);
         }
       }
-      var bonus = Math.ceil(amount * (bonus_rate + DEPOSITE_BONUS));
+
+      var bonus = Math.floor((amount - 1) * bonus_rate);
 
       var new_power = rows[0].power + bonus;
       var total_power = rows[0].total_power + bonus;
@@ -188,7 +220,7 @@ const depositeTron = async (amount, address, user_id) => {
         `Update mining set power = ${new_power} ,balance = ${new_balance}, total_power = ${total_power} where user_id = ${user_id}`
       );
 
-      await createReward("deposite", amount, bonus, user_id);
+      await createReward("deposite", amount - 1, bonus, user_id);
 
       return {
         success: true,
@@ -528,6 +560,18 @@ const eventInfo = async () => {
     return false;
   }
 };
+
+const currentEventInfo = async () => {
+  try {
+    var rows = await query(
+      `select * from event where type = 'common' and (DATE_ADD(start_time, INTERVAL time MINUTE)) > NOW()`
+    );
+    return rows[0];
+  } catch (err) {
+    return false;
+  }
+};
+
 const miningInfo = async (user_id) => {
   try {
     var rows = await query(
@@ -550,6 +594,20 @@ const getStackedPlan = async (user_id) => {
     return false;
   }
 };
+const updateEvent = async (status) => {
+  try {
+    var rows = await query(
+      `update event set status = ${
+        status ? 1 : 0
+      }  where type = 'common' and (DATE_ADD(start_time, INTERVAL time MINUTE)) > NOW() `
+    );
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
 module.exports = {
   getCurrentPower,
   reInvestTron,
@@ -575,4 +633,6 @@ module.exports = {
   getStackedPlan,
   UpdateFeeofUser,
   GetFeeofUser,
+  currentEventInfo,
+  updateEvent,
 };

@@ -82,7 +82,7 @@ const transactionInfo = async (transaction_id) => {
 const eventCreate = async (title, rate, time) => {
   try {
     const rows = await query(
-      `select * from event where status = 1 and type = 'common'`
+      `select * from event where type = 'common' and (DATE_ADD(start_time, INTERVAL time MINUTE)) > NOW()`
     );
     if (rows.length > 0) return false;
     else
