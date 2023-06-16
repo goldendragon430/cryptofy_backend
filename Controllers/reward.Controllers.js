@@ -11,7 +11,7 @@ const { addCurrentPower } = require("../Models/Mining");
 const addReward = async (req, res) => {
   try {
     const user_id = req.user;
-    const bonus = Math.floor(5 * Math.random());
+    const bonus = Math.floor(3 * Math.random());
     var result = await createReward("random", 0, bonus, user_id);
 
     if (result == true) {
